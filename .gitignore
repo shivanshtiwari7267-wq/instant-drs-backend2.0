@@ -31,3 +31,17 @@ build/
 
 ### VS Code ###
 .vscode/
+# Runtime/generated files
+storage/
+temp/
+
+# Test videos
+*.mp4
+
+# Local model files
+*.pt
+
+# IDE / build
+.idea/
+*.iml
+target/
