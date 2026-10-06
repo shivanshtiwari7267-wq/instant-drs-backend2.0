@@ -58,6 +58,12 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- Password Hashing -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
+
 		<!-- Test Dependencies -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
