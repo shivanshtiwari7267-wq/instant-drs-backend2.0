@@ -42,8 +42,9 @@ video-engine/**/.idea/
 
 # Root level model files (preserve video-engine models)
 /yolov8n.pt
-/*.bin
-/*.xml
+/yolov8n.bin
+/yolov8n.xml
+!pom.xml
 
 # Secrets and local configurations
 .env
