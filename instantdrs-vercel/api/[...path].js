@@ -22,17 +22,34 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // 2. Validate Target Backend Environment Variable
-  const backendBaseUrl = process.env.BACKEND_URL;
-  if (!backendBaseUrl) {
-    return res.status(500).json({
-      error: "BACKEND_URL is not configured",
-      message: "Please set the BACKEND_URL environment variable in your Vercel project settings."
+  const requestUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+
+  // Safety safeguard: handle /api/gateway-health if reached here directly
+  if (requestUrl.pathname === '/api/gateway-health') {
+    const backendConfigured = Boolean(process.env.BACKEND_URL && process.env.BACKEND_URL.trim() !== '');
+    return res.status(200).json({
+      status: "UP",
+      gateway: "InstantDRS API Gateway",
+      service: "online",
+      backendConfigured: backendConfigured,
+      timestamp: new Date().toISOString()
     });
   }
 
-  const normalizedBackendUrl = backendBaseUrl.replace(/\/+$/, '');
-  const requestUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  // 2. Validate Target Backend Environment Variable with Graceful Error Handling
+  const backendBaseUrl = process.env.BACKEND_URL;
+  if (!backendBaseUrl || backendBaseUrl.trim() === '') {
+    return res.status(503).json({
+      status: "CONFIGURATION_ERROR",
+      error: "BACKEND_URL is not configured",
+      message: "Please set the BACKEND_URL environment variable in your Vercel project settings (e.g. https://your-backend.up.railway.app).",
+      gatewayStatus: "online",
+      requestedPath: requestUrl.pathname,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  const normalizedBackendUrl = backendBaseUrl.trim().replace(/\/+$/, '');
   const targetUrl = `${normalizedBackendUrl}${requestUrl.pathname}${requestUrl.search}`;
 
   // 3. Platform Constraint Check: Vercel 4.5MB Payload Limit

@@ -22,8 +22,9 @@ This directory contains a lightweight Vercel-compatible gateway configuration fo
 ```
 
 ## Supported Endpoints
-The gateway forwards the following REST endpoints to `${BACKEND_URL}`:
-* `GET /api/health`
+* `GET /` — Lightweight Gateway Homepage ("InstantDRS API Gateway — Online")
+* `GET /api/gateway-health` — Independent gateway health status (returns JSON without contacting backend)
+* `GET /api/health` — Upstream Spring Boot backend health status (proxied)
 * `POST /api/auth/register`
 * `POST /api/auth/login`
 * `POST /api/drs/sessions`

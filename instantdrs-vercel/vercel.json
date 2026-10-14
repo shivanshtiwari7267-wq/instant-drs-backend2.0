@@ -2,13 +2,17 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/api/gateway-health",
+      "destination": "/api/gateway-health"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/[...path]"
     }
   ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Credentials", "value": "true" },
         { "key": "Access-Control-Allow-Origin", "value": "*" },
