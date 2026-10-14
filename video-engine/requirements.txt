@@ -4,6 +4,8 @@ torchvision==0.16.0+cpu
 ultralytics==8.2.0
 openvino==2024.1.0
 opencv-python-headless>=4.8.0
-numpy>=1.24.0
+# numpy<2.0.0 required: torch 2.1.0 and ultralytics 8.2.0 use NumPy 1.x ABI
+# and will raise ImportError with NumPy 2.x ("compiled using NumPy 1.x cannot run in NumPy 2.x")
+numpy>=1.24.0,<2.0.0
 polars>=0.20.0
 psutil>=5.9.0

@@ -36,13 +36,15 @@ LABEL description="InstantDRS Backend Orchestrator + Python Fast Video Review En
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies: Python 3, FFmpeg, OpenCV runtime libraries, curl
-RUN apt-get update && \
+# Note: libgl1-mesa-glx was split/renamed to libgl1 in Ubuntu 22.04 (Jammy)
+# Note: -o Acquire::Retries=3 retries on transient Railway network drops
+RUN apt-get update -o Acquire::Retries=3 && \
     apt-get install -y --no-install-recommends \
         python3 \
         python3-pip \
         python3-venv \
         ffmpeg \
-        libgl1-mesa-glx \
+        libgl1 \
         libglib2.0-0 \
         ca-certificates \
         curl && \
@@ -54,9 +56,30 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install exact Python machine learning & video processing dependencies
+# requirements.txt is copied for reference; versions are pinned explicitly below
+# to keep the Dockerfile self-contained and enable independent Railway layer caching.
 COPY video-engine/requirements.txt /tmp/video-engine-requirements.txt
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r /tmp/video-engine-requirements.txt && \
+
+# Step A: Upgrade pip tooling
+RUN pip install --no-cache-dir --timeout 600 --upgrade pip setuptools wheel
+
+# Step B: Install PyTorch CPU stack first (~800 MB from download.pytorch.org)
+# Separate layer so Railway caches it independently — avoids re-downloading on every rebuild
+RUN pip install --no-cache-dir --timeout 600 \
+        --extra-index-url https://download.pytorch.org/whl/cpu \
+        torch==2.1.0+cpu \
+        torchvision==0.16.0+cpu
+
+# Step C: Install remaining ML/video-processing dependencies
+# numpy is bounded to <2.0.0 because torch 2.1.0 and ultralytics 8.2.0
+# were compiled against NumPy 1.x ABI and will fail at import with NumPy 2.x
+RUN pip install --no-cache-dir --timeout 600 \
+        ultralytics==8.2.0 \
+        openvino==2024.1.0 \
+        "opencv-python-headless>=4.8.0" \
+        "numpy>=1.24.0,<2.0.0" \
+        "polars>=0.20.0" \
+        "psutil>=5.9.0" && \
     rm /tmp/video-engine-requirements.txt
 
 # Create application user and group for non-root execution
@@ -66,6 +89,7 @@ WORKDIR /app
 
 # Provision storage directories for uploaded and processed video files
 RUN mkdir -p /app/storage/original /app/storage/processed /app/video-engine && \
+    chmod -R 777 /app/storage && \
     chown -R instantdrs:instantdrs /app $VIRTUAL_ENV
 
 # Copy compiled Spring Boot executable JAR from builder stage
