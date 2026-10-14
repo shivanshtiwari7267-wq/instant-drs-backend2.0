@@ -1,0 +1,13 @@
+{
+  "name": "instantdrs-vercel-gateway",
+  "version": "1.0.0",
+  "description": "Lightweight Vercel API Gateway for InstantDRS Spring Boot Backend",
+  "main": "api/[...path].js",
+  "scripts": {
+    "start": "node api/[...path].js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18.x"
+  }
+}

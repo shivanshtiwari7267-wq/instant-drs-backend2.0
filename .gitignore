@@ -31,17 +31,35 @@ build/
 
 ### VS Code ###
 .vscode/
-# Runtime/generated files
+
+# Runtime / generated files
 storage/
 temp/
 
 # Test videos
 *.mp4
+*.avi
+*.mov
+*.mkv
 
-# Local model files
-*.pt
+# Python caches and local venvs
+video-engine/**/__pycache__/
+video-engine/**/.venv/
+video-engine/**/output/
+video-engine/**/input/
+video-engine/**/working/
 
-# IDE / build
-.idea/
-*.iml
-target/
+# Explicitly track required ML model weights in video-engine
+!video-engine/**/*.pt
+!video-engine/**/*.bin
+!video-engine/**/*.xml
+# Ignore root duplicate model weights (canonical copy in video-engine/tool3-sports-ball-tracking/yolov8n.pt)
+/yolov8n.pt
+
+# Secrets & local credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.crt

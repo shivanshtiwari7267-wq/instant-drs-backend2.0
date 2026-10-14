@@ -1,0 +1,57 @@
+# Git & Version Control
+.git/
+.gitignore
+.gitattributes
+
+# IDE & Editor files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+.sts4-cache/
+
+# Maven & Build outputs
+target/
+build/
+*.class
+*.jar
+*.war
+
+# Runtime storage and generated videos
+storage/
+temp/
+*.mp4
+*.avi
+*.mov
+*.mkv
+dummy.mp4
+final_downloaded.mp4
+test.mp4
+
+# Python virtualenvs and temporary caches in video-engine
+video-engine/**/__pycache__/
+video-engine/**/.venv/
+video-engine/**/output/
+video-engine/**/input/
+video-engine/**/working/
+video-engine/**/.idea/
+
+# Root level model files (preserve video-engine models)
+/yolov8n.pt
+/*.bin
+/*.xml
+
+# Secrets and local configurations
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.crt
+
+# Vercel Gateway directory
+instantdrs-vercel/

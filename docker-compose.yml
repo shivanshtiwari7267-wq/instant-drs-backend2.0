@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: instantdrs-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: instant_drs
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-instantdrs_secret}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: instantdrs-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8080
+      DB_URL: jdbc:mysql://db:3306/instant_drs?useSSL=false&serverTimezone=Asia/Kolkata&allowPublicKeyRetrieval=true
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-instantdrs_secret}
+      STORAGE_ORIGINAL_DIR: /app/storage/original/
+      STORAGE_PROCESSED_DIR: /app/storage/processed/
+      VIDEO_ENGINE_PYTHON: /opt/venv/bin/python
+      VIDEO_ENGINE_PIPELINE: /app/video-engine/pipeline/run_pipeline.py
+      VIDEO_ENGINE_FAST_PIPELINE: /app/video-engine/pipeline/fast_drs_pipeline.py
+      VIDEO_ENGINE_USE_FAST: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - video_storage:/app/storage
+
+volumes:
+  mysql_data:
+  video_storage:

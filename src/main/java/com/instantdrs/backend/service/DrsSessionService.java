@@ -1,6 +1,7 @@
 package com.instantdrs.backend.service;
 
 import com.instantdrs.backend.entity.DrsSession;
+import com.instantdrs.backend.exception.ResourceNotFoundException;
 import com.instantdrs.backend.repository.DrsSessionRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -56,7 +57,7 @@ public class DrsSessionService {
 
     public DrsSession getSessionById(Long id) {
         return drsSessionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("DrsSession not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("DrsSession not found with id: " + id));
     }
 
     public List<DrsSession> getAllSessions() {
@@ -225,49 +226,37 @@ public class DrsSessionService {
     }
 
     public ResponseEntity<Resource> downloadVideo(Long id) {
+        DrsSession session = drsSessionRepository.findById(id).orElse(null);
+        if (session == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        if (!"COMPLETED".equalsIgnoreCase(session.getStatus()) || session.getProcessedVideoPath() == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
 
         try {
+            Path path = Paths.get(session.getProcessedVideoPath()).toAbsolutePath().normalize();
+            File file = path.toFile();
 
-            DrsSession session = getSessionById(id);
-
-            if (!"COMPLETED".equals(session.getStatus())
-                    || session.getProcessedVideoPath() == null) {
-
-                return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .build();
+            if (!file.exists() || !file.isFile() || !file.canRead()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-
-            Path path = Paths.get(session.getProcessedVideoPath());
 
             Resource resource = new UrlResource(path.toUri());
-
-            if (resource.exists() || resource.isReadable()) {
-
-                return ResponseEntity.ok()
-                        .contentType(
-                                MediaType.parseMediaType("video/mp4")
-                        )
-                        .header(
-                                HttpHeaders.CONTENT_DISPOSITION,
-                                "attachment; filename=\""
-                                        + resource.getFilename()
-                                        + "\""
-                        )
-                        .body(resource);
-
-            } else {
-
-                return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .build();
+            if (!resource.exists() || !resource.isReadable()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
 
-        } catch (Exception e) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType("video/mp4"))
+                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getName() + "\"")
+                    .contentLength(file.length())
+                    .body(resource);
 
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

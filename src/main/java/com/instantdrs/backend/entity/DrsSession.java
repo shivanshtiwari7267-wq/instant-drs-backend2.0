@@ -28,6 +28,8 @@ public class DrsSession {
     
     private LocalDateTime createdAt;
     private LocalDateTime completedAt;
+    
+    private String decision;
 
     @PrePersist
     protected void onCreate() {
