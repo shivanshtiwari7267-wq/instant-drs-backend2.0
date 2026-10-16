@@ -14,28 +14,38 @@ import { connect } from '@planetscale/database';
  * Build a PlanetScale connection from DATABASE_URL.
  * Called once per function invocation (connections are HTTP, so no pooling needed).
  */
-function getConnection() {
-  const url = process.env.DATABASE_URL;
+function sanitizeDatabaseUrl(raw) {
+  if (!raw) return '';
+  let url = raw.trim();
+  // Strip leading variable assignment if user pasted DATABASE_URL=...
+  if (url.startsWith('DATABASE_URL=')) {
+    url = url.slice(13).trim();
+  }
+  // Strip surrounding single or double quotes
+  if ((url.startsWith("'") && url.endsWith("'")) || (url.startsWith('"') && url.endsWith('"'))) {
+    url = url.slice(1, -1).trim();
+  }
+  return url;
+}
 
-  if (!url) {
+function getConnection() {
+  const rawUrl = process.env.DATABASE_URL;
+
+  if (!rawUrl) {
     throw new Error(
       'DATABASE_URL environment variable is not set. ' +
       'Add it in your Vercel project → Settings → Environment Variables.'
     );
   }
 
-  // PlanetScale's connect() accepts { url } directly, including host, credentials, database, and SSL options
+  const url = sanitizeDatabaseUrl(rawUrl);
+
   try {
     return connect({ url });
-  } catch {
-    const parsed = new URL(url);
-    const database = parsed.pathname.replace(/^\//, '');
-    return connect({
-      host:     parsed.hostname,
-      username: parsed.username,
-      password: parsed.password,
-      database: database || undefined,
-    });
+  } catch (err) {
+    throw new Error(
+      `DATABASE_URL configuration error (${err.message}). Expected format: mysql://<user>:<password>@<host>/<database>`
+    );
   }
 }
 
