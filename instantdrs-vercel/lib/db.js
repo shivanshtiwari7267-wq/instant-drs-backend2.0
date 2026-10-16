@@ -17,14 +17,32 @@ import { connect } from '@planetscale/database';
 function sanitizeDatabaseUrl(raw) {
   if (!raw) return '';
   let url = raw.trim();
+
   // Strip leading variable assignment if user pasted DATABASE_URL=...
   if (url.startsWith('DATABASE_URL=')) {
     url = url.slice(13).trim();
   }
+
   // Strip surrounding single or double quotes
   if ((url.startsWith("'") && url.endsWith("'")) || (url.startsWith('"') && url.endsWith('"'))) {
     url = url.slice(1, -1).trim();
   }
+
+  // Strip JDBC prefix (e.g. jdbc:mysql:// -> mysql://) which breaks URL parsing
+  if (url.toLowerCase().startsWith('jdbc:')) {
+    url = url.slice(5).trim();
+  }
+
+  // If missing scheme, prepend mysql://
+  if (!url.includes('://')) {
+    url = `mysql://${url}`;
+  }
+
+  // PlanetScale HTTP API uses HTTPS port 443, not TCP MySQL port 3306
+  if (url.includes('.psdb.cloud:3306')) {
+    url = url.replace(':3306', '');
+  }
+
   return url;
 }
 
