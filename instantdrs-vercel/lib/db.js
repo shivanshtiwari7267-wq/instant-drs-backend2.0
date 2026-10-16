@@ -46,6 +46,17 @@ function sanitizeDatabaseUrl(raw) {
   return url;
 }
 
+function inspectUrlSafely(str) {
+  if (!str) return 'EMPTY';
+  const len = str.length;
+  const start = str.slice(0, 8);
+  const end = str.slice(-8);
+  const hasAt = str.includes('@');
+  const hasColon = str.includes(':');
+  const hasSlash = str.includes('/');
+  return `length=${len}, startsWith=${JSON.stringify(start)}, endsWith=${JSON.stringify(end)}, hasAt=${hasAt}, hasColon=${hasColon}, hasSlash=${hasSlash}`;
+}
+
 function getConnection() {
   const rawUrl = process.env.DATABASE_URL;
 
@@ -61,8 +72,25 @@ function getConnection() {
   try {
     return connect({ url });
   } catch (err) {
+    // If connect({ url }) failed with Invalid URL, attempt manual parsing of host/username/password
+    try {
+      // Regex match: mysql://[user]:[pass]@[host]:[port]/[database]
+      const match = url.match(/^(?:mysql:\/\/)?([^:]+):([^@]+)@([^/:]+)(?::\d+)?(?:\/([^?]+))?/i);
+      if (match) {
+        const [, username, password, host, database] = match;
+        return connect({
+          host,
+          username,
+          password,
+          database: database || undefined,
+        });
+      }
+    } catch {
+      // ignore regex fallback failure
+    }
+
     throw new Error(
-      `DATABASE_URL configuration error (${err.message}). Expected format: mysql://<user>:<password>@<host>/<database>`
+      `DATABASE_URL configuration error (${err.message}; ${inspectUrlSafely(rawUrl)}). Expected format: mysql://<user>:<password>@<host>/<database>`
     );
   }
 }
