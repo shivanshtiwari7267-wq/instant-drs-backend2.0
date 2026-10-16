@@ -24,15 +24,19 @@ function getConnection() {
     );
   }
 
-  // Parse mysql:// URL into host/username/password/database components
-  // PlanetScale's connect() accepts { host, username, password } directly
-  const parsed = new URL(url);
-
-  return connect({
-    host:     parsed.hostname,
-    username: parsed.username,
-    password: parsed.password,
-  });
+  // PlanetScale's connect() accepts { url } directly, including host, credentials, database, and SSL options
+  try {
+    return connect({ url });
+  } catch {
+    const parsed = new URL(url);
+    const database = parsed.pathname.replace(/^\//, '');
+    return connect({
+      host:     parsed.hostname,
+      username: parsed.username,
+      password: parsed.password,
+      database: database || undefined,
+    });
+  }
 }
 
 /**

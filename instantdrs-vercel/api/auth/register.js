@@ -87,6 +87,6 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('[POST /api/auth/register]', err);
-    return serverErr(res, 'Registration failed due to a server error');
+    return serverErr(res, err.message ?? 'Registration failed due to a server error');
   }
 }

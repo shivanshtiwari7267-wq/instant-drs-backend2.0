@@ -75,6 +75,6 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('[POST /api/auth/login]', err);
-    return serverErr(res, 'Login failed due to a server error');
+    return serverErr(res, err.message ?? 'Login failed due to a server error');
   }
 }
