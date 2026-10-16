@@ -1,24 +1,39 @@
 {
   "version": 2,
+
   "rewrites": [
-    {
-      "source": "/api/gateway-health",
-      "destination": "/api/gateway-health"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/[...path]"
-    }
+    { "source": "/api/health",                                             "destination": "/api/gateway-health" },
+
+    { "source": "/api/auth/register",                                      "destination": "/api/auth/register" },
+    { "source": "/api/auth/login",                                         "destination": "/api/auth/login" },
+
+    { "source": "/api/drs/sessions",                                       "destination": "/api/drs/sessions/index" },
+    { "source": "/api/drs/sessions/:id",                                   "destination": "/api/drs/sessions/[id]/index?id=:id" },
+
+    { "source": "/api/drs/sessions/:id/upload-token",                      "destination": "/api/drs/sessions/[id]/upload-token?id=:id" },
+
+    { "source": "/api/drs/sessions/:id/timeline",                          "destination": "/api/drs/sessions/[id]/timeline/index?id=:id" },
+    { "source": "/api/drs/sessions/:id/timeline/:eventId",                 "destination": "/api/drs/sessions/[id]/timeline/[eventId]?id=:id&eventId=:eventId" },
+
+    { "source": "/api/drs/sessions/:id/decision",                          "destination": "/api/drs/sessions/[id]/decision?id=:id" },
+    { "source": "/api/drs/sessions/:id/review-decision",                   "destination": "/api/drs/sessions/[id]/decision?id=:id" },
+
+    { "source": "/api/drs/sessions/:id/decisions",                         "destination": "/api/drs/sessions/[id]/decisions?id=:id" },
+
+    { "source": "/api/gateway-health",                                     "destination": "/api/gateway-health" }
   ],
+
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Credentials", "value": "true" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
+        { "key": "Access-Control-Allow-Origin",      "value": "*" },
+        { "key": "Access-Control-Allow-Methods",     "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers",
+          "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
       ]
     }
   ]
 }
+

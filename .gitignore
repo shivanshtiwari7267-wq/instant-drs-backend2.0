@@ -63,3 +63,8 @@ video-engine/**/working/
 *.key
 *.p12
 *.crt
+
+# Node & Vercel
+node_modules/
+.vercel/
+

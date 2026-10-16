@@ -1,14 +1,19 @@
 {
-  "name": "instantdrs-vercel-gateway",
-  "version": "1.0.0",
-  "description": "Lightweight Vercel API Gateway for InstantDRS Spring Boot Backend",
+  "name": "instantdrs-vercel",
+  "version": "2.0.0",
+  "description": "InstantDRS Native Vercel Backend — serverless REST API for the Android DRS app",
   "type": "module",
-  "main": "api/[...path].js",
   "scripts": {
-    "start": "node api/[...path].js"
+    "dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "test": "node --test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@planetscale/database": "^1.19.0",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.9.3"
+  },
   "engines": {
-    "node": ">=18.x"
+    "node": ">=20.x"
   }
 }
